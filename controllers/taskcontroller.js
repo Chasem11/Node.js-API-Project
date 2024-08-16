@@ -6,52 +6,48 @@ exports.getAllTasks = async (req, res) => {
         const tasks = await Task.find();
         res.status(200).json(tasks);
     } catch (error) {
-        res.status(500).send(error);
+        res.status(500).json({ messagee: 'Error getting task', error: error });
     }
 };
 
-exports.getTaskById = (req, res) => {
-    const tasks = readData();
-    const task = tasks.find(task => task.id === parseInt(req.params.id));
-    if (!task) {
-        res.status(404).send('Task not found');
-        return;
+exports.getTaskById = async (req, res) => {
+    try {
+        const task = await Task.findById(req.params.id);
+        if (!task) {
+            res.status(404).send('Task not found');
+            return;
+        }
+        res.status(200).json(task);
+    } catch (error) {
+        res.status(500).json({ messagee: 'Error getting task', error: error });
     }
-    res.send(task);
-}
-
-exports.createTask = (req, res) => {
-    const tasks = readData();
-
-    const { name, completed = false } = req.body;
-
-    const newTask = {
-        id: tasks.length + 1, 
-        name: name,       
-        completed: completed  
-    };
-
-    tasks.push(newTask);
-    writeData(tasks);
-    res.status(201).json(newTask); 
 };
 
-exports.updateTask = (req, res) => {
-    const tasks = readData();
-    const task = tasks.find(task => task.id === parseInt(req.params.id));
-    if (!task) {
-        res.status(404).send('Task not found');
-        return;
+exports.createTask = async (req, res) => {
+    try {
+        const task = new Task({
+            name: req.body.name,
+            completed: req.body.completed || false
+        });
+        const newTask = await task.save();
+        res.status(201).json(newTask);
+    } catch (error) {
+        res.status(500).json({ messagee: 'Error creating task', error: error });
     }
+};
 
-    const { name, completed = false } = req.body;
-
-    task.name = name;
-    task.completed = completed;
-
-    writeData(tasks);
-    res.status(200).json(tasks[task.id]);
-}
+exports.updateTask = async (req, res) => {
+    try {
+        const updatedTask = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        if (!updatedTask) {
+            res.status(404).send('Task not found');
+            return;
+        }
+        res.status(200).json(updatedTask);
+    } catch (error) {
+        res.status(500).json({ messagee: 'Error updating task', error: error });
+    }
+};
 
 exports.deleteTask = (req, res) => {
     const tasks = readData();
