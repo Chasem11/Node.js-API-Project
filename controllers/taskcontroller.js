@@ -61,3 +61,16 @@ exports.deleteTask = async (req, res) => {
         res.status(500).json({ messagee: 'Error deleting task', error: error });
     }
 };
+
+exports.getTaskIdByName = async (req, res) => {
+    try {
+        const task = await Task.findOne({ name: req.params.name });
+        if (!task) {
+            res.status(404).send('Task not found');
+            return;
+        }
+        res.status(200).json({ id: task._id });
+    } catch (error) {
+        res.status(500).json({ messagee: 'Error getting task', error: error });
+    }
+};
