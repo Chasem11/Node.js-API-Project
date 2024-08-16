@@ -49,17 +49,15 @@ exports.updateTask = async (req, res) => {
     }
 };
 
-exports.deleteTask = (req, res) => {
-    const tasks = readData();
-    const task = tasks.find(task => task.id === parseInt(req.params.id));
-    if (!task) {
-        res.status(404).send('Task not found');
-        return;
+exports.deleteTask = async (req, res) => {
+    try {
+        const deletedTask = await Task.findByIdAndDelete(req.params.id);
+        if (!deletedTask) {
+            res.status(404).send('Task not found');
+            return;
+        }
+        res.status(200).json(deletedTask);
+    } catch (error) {
+        res.status(500).json({ messagee: 'Error deleting task', error: error });
     }
-
-    const index = tasks.indexOf(task);
-    tasks.splice(index, 1);
-
-    writeData(tasks);
-    res.status(200).send();
-}
+};
